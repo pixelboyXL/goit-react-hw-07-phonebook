@@ -1,31 +1,22 @@
-// Код для редюсера на Redux Toolkit + createSlice👇
+// Код для редюсера на Redux Toolkit + createSlice + createAsyncThunk + builder👇
 
-import { createSlice } from "@reduxjs/toolkit";
-import {
-    fetchContactsRequest,
-    fetchContactsSuccess,
-    fetchContactsError,
-    addNewContactRequest,
-    addNewContactSuccess,
-    addNewContactError,
-    deleteContactRequest,
-    deleteContactSuccess,
-    deleteContactError,
-} from 'redux/actions';
+import { createSlice, isAnyOf } from "@reduxjs/toolkit";
+import { fetchContacts, addNewContact, deleteContact } from "./operations";
 
-const forRequest = (state) => {
-    state.isLoading = true;
+const handleFetchContacts = (state, action) => {
+    state.items = action.payload;
 };
 
-const forSuccess = (state, action) => {
-    state.isLoading = false;
-    state.error = null;
+const handleAddNewContact = (state, action) => {
+    state.items.push(action.payload);
 };
 
-const forError = (state, action) => {
-    state.isLoading = false;
-    state.error = action.payload;
+const handleDeleteContact = (state, action) => {
+    const idx = state.items.findIndex(item => item.id === action.payload.id);
+    state.items.splice(idx, 1);
 };
+
+const actions = [fetchContacts, addNewContact, deleteContact];
 
 const phonebookSlice = createSlice({
     name: "contacts",
@@ -36,90 +27,109 @@ const phonebookSlice = createSlice({
         filter: '',
     },
     reducers: {
-        addNewContact(state, action) { 
-            state.items.splice(0, 0, action.payload);
-        },
-        deleteContact(state, action) {
-            state.items = state.items.filter(contact => contact.id !== action.payload);
-        },
         setFilter(state, action) {
             state.filter = action.payload;
         },
     },
-    extraReducers: {
-        [fetchContactsRequest](state) {
-            forRequest(state);
-        },
-        [fetchContactsSuccess](state, action) {
-            state.items = action.payload;
-            forSuccess(state, action);
-        },
-        [fetchContactsError](state, action) {
-            forError(state, action);
-        },
-        [addNewContactRequest](state) {
-            forRequest(state);
-        },
-        [addNewContactSuccess](state, action) {
-            state.items.push(action.payload);
-            forSuccess(state, action);
-        },
-        [addNewContactError](state, action) {
-            forError(state, action);
-        },
-        [deleteContactRequest](state) {
-            forRequest(state);
-        },
-        [deleteContactSuccess](state, action) {
-            const idx = state.items.findIndex(item => item.id === action.payload);
-            state.items.splice(idx, 1);
-            forSuccess(state, action);
-        },
-        [deleteContactError](state, action) {
-            forError(state, action);
-        },
-    },
-});
 
-export const { addNewContact, deleteContact, setFilter } = phonebookSlice.actions;
+    extraReducers: builder =>
+        builder
+            .addCase(fetchContacts.fulfilled, handleFetchContacts)
+            .addCase(addNewContact.fulfilled, handleAddNewContact)
+            .addCase(deleteContact.fulfilled, handleDeleteContact)
+            .addMatcher(
+                isAnyOf(...actions.map(action => action.fulfilled)),
+                    state => {
+                    state.isLoading = false;
+                    state.error = null;
+                }
+            )
+            .addMatcher(isAnyOf(...actions.map(action => action.pending)),
+                state => {
+                state.isLoading = true;
+            })
+            .addMatcher(
+                isAnyOf(...actions.map(action => action.rejected)),
+                    (state, action) => {
+                    state.isLoading = false;
+                    state.error = action.payload;
+                }
+            ),
+    });
+
+export const { setFilter } = phonebookSlice.actions;
 export const phonebookReducer = phonebookSlice.reducer;
 
-// Код для редюсера на Redux Toolkit + createReducer + createAction👇
+// Код для редюсера на Redux Toolkit + createSlice + createAsyncThunk👇
 
-// import { addNewContact, deleteContact, setFilter } from "./actions";
-// import { persistReducer } from 'redux-persist';
-// import storage from 'redux-persist/lib/storage';
+// import { createSlice } from "@reduxjs/toolkit";
+// import { fetchContacts, addNewContact, deleteContact } from "./operations";
 
-// const initialState = {
-//     contacts: {
-//         items: [
-//             { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-//             { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-//             { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-//             { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-//         ],
-//         filter: '',
-//     }
+// const handleRequest = (state) => {
+//     state.isLoading = true;
 // };
 
-// const phonebookReducer = createReducer(initialState, {
-//     [addNewContact](state, action) {
-//         state.contacts.items.splice(0, 0, action.payload);
+// const handleSuccess = (state) => {
+//     state.isLoading = false;
+//     state.error = null;
+// };
+
+// const handleError = (state, action) => {
+//     state.isLoading = false;
+//     state.error = action.payload;
+// };
+
+// const phonebookSlice = createSlice({
+//     name: "contacts",
+//     initialState: {
+//         items: [],
+//         isLoading: false,
+//         error: null,
+//         filter: '',
 //     },
-//     [deleteContact](state, action) {
-//         state.contacts.items = state.contacts.items.filter(contact => contact.id !== action.payload);
+//     reducers: {
+//         setFilter(state, action) {
+//             state.filter = action.payload;
+//         },
 //     },
-//     [setFilter](state, action) {
-//         state.contacts.filter = action.payload;
+
+//     extraReducers: {
+//         [fetchContacts.pending](state) {
+//             handleRequest(state);
+//         },
+//         [fetchContacts.fulfilled](state, action) {
+//             state.items = action.payload;
+//             handleSuccess(state, action);
+//         },
+//         [fetchContacts.rejected](state, action) {
+//             handleError(state, action);
+//         },
+//         [addNewContact.pending](state) {
+//             handleRequest(state);
+//         },
+//         [addNewContact.fulfilled](state, action) {
+//             state.items.push(action.payload);
+//             handleSuccess(state, action);
+//         },
+//         [addNewContact.rejected](state, action) {
+//             handleError(state, action);
+//         },
+//         [deleteContact.pending](state) {
+//             handleRequest(state);
+//         },
+//         [deleteContact.fulfilled](state, action) {
+//             const idx = state.items.findIndex(item => item.id === action.payload);
+//             state.items.splice(idx, 1);
+//             handleSuccess(state, action);
+//         },
+//         [deleteContact.rejected](state, action) {
+//             handleError(state, action);
+//         },
 //     },
 // });
 
-// const persistConfig = {
-//     key: 'contacts',
-//     storage,
-// };
-
-// export const persistedReducer = persistReducer(persistConfig, phonebookReducer);
+// export const { setFilter } = phonebookSlice.actions;
+// export const phonebookReducer = phonebookSlice.reducer;
 
 
 
@@ -127,54 +137,83 @@ export const phonebookReducer = phonebookSlice.reducer;
 
 
 
-// Код для редюсера на чистому Redux👇
+// Код для редюсера на Redux Toolkit + createSlice + createAction + операції👇
 
-// import { persistReducer } from 'redux-persist';
-// import storage from 'redux-persist/lib/storage';
+// import { createSlice } from "@reduxjs/toolkit";
+// import {
+//     fetchContactsRequest,
+//     fetchContactsSuccess,
+//     fetchContactsError,
+//     addNewContactRequest,
+//     addNewContactSuccess,
+//     addNewContactError,
+//     deleteContactRequest,
+//     deleteContactSuccess,
+//     deleteContactError,
+// } from 'redux/actions';
+// import { fetchContacts } from "./operations";
 
-// const initialState = {
-//     contacts: {
-//         items: [
-//             { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-//             { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-//             { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-//             { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-//         ],
+// const handleRequest = (state) => {
+//     state.isLoading = true;
+// };
+
+// const handleSuccess = (state) => {
+//     state.isLoading = false;
+//     state.error = null;
+// };
+
+// const handleError = (state, action) => {
+//     state.isLoading = false;
+//     state.error = action.payload;
+// };
+
+// const phonebookSlice = createSlice({
+//     name: "contacts",
+//     initialState: {
+//         items: [],
+//         isLoading: false,
+//         error: null,
 //         filter: '',
 //     },
-// };
+//     reducers: {
+//         setFilter(state, action) {
+//             state.filter = action.payload;
+//         },
+//     },
+//     extraReducers: {
+//         [fetchContactsRequest](state) {
+//             handleRequest(state);
+//         },
+//         [fetchContactsSuccess](state, action) {
+//             state.items = action.payload;
+//             handleSuccess(state, action);
+//         },
+//         [fetchContactsError](state, action) {
+//             handleError(state, action);
+//         },
+//         [addNewContactRequest](state) {
+//             handleRequest(state);
+//         },
+//         [addNewContactSuccess](state, action) {
+//             state.items.push(action.payload);
+//             handleSuccess(state, action);
+//         },
+//         [addNewContactError](state, action) {
+//             handleError(state, action);
+//         },
+//         [deleteContactRequest](state) {
+//             handleRequest(state);
+//         },
+//         [deleteContactSuccess](state, action) {
+//             const idx = state.items.findIndex(item => item.id === action.payload);
+//             state.items.splice(idx, 1);
+//             handleSuccess(state, action);
+//         },
+//         [deleteContactError](state, action) {
+//             handleError(state, action);
+//         },
+//     },
+// });
 
-// const phonebookReducer = (state = initialState, action) => {
-//     switch (action.type) {
-//         case "contact/addNewContact":
-//             return {
-//                 contacts: {
-//                     ...state.contacts,
-//                     items: [action.payload, ...state.contacts.items],
-//                 }
-//             };
-//         case "contact/deleteContact":
-//             return {
-//                 contacts: {
-//                     ...state.contacts,
-//                     items: state.contacts.items.filter(contact => contact.id !== action.payload)
-//                 }
-//             };
-//         case "filter/setFilter":
-//             return {
-//                 contacts: {
-//                     ...state.contacts,
-//                     filter: action.payload,
-//                 }
-//             };
-//         default:
-//             return state;
-//     };
-// };
-
-// const persistConfig = {
-//     key: 'contacts',
-//     storage,
-// };
-
-// export const persistedReducer = persistReducer(persistConfig, phonebookReducer);
+// export const { addNewContact, deleteContact, setFilter } = phonebookSlice.actions;
+// export const phonebookReducer = phonebookSlice.reducer;
