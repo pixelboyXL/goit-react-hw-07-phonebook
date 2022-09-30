@@ -42,3 +42,10 @@ export const WarningMessage = styled.p`
     font-size: ${p => p.theme.fontSizes.m};
     color: ${p => p.theme.colors.almostDarkGreen};
 `;
+
+export const FallingLinesStyled = {
+    color: "#082911",
+    width: "70",
+    visible: true,
+    ariaLabel: 'falling-lines-loading',
+};

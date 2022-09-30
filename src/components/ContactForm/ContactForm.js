@@ -1,17 +1,15 @@
 import React, { useState } from "react";
 import { ContactFormStyle, LabelForm, InputForm, ButtonForAdd } from "components/ContactForm/ContactForm.styled";
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { useDispatch, useSelector } from "react-redux";
-import { getContacts } from "redux/selector";
+import { selectContacts } from "redux/selector";
 import { addNewContact } from "redux/operations";
-import { nanoid } from "@reduxjs/toolkit";
+import { toastWarn } from "components/services/toasts";
 
 export const ContactForm = () => {
     const [name, setName] = useState('');
     const [number, setNumber] = useState('');
     
-    const contacts = useSelector(getContacts);
+    const contacts = useSelector(selectContacts);
     const dispatch = useDispatch();
     
     const onSubmitForm = (event) => {
@@ -19,12 +17,11 @@ export const ContactForm = () => {
         const checkContact = contacts.some(contact => contact.name.toLowerCase() === name.toLowerCase());
         if (checkContact === true) {
             reset();
-            return toast.warn(`${name} is already in contacts`, { theme: "colored", });
+            return toastWarn(name);
         };
         const newContact = {
             name,
             number,
-            id: nanoid(),
         };
         dispatch(addNewContact(newContact));
         reset();

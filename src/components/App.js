@@ -7,13 +7,14 @@ import { ContactList } from "components/ContactList/ContactList";
 import { Filter } from "components/Filter/Filter";
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getContacts, getIsLoading } from 'redux/selector';
+import { selectContacts, selectIsLoading } from 'redux/selector';
 import { fetchContacts } from 'redux/operations';
+import { Loading } from 'components/Loading';
 
 export const App = () => {
   const dispatch = useDispatch();
-  const contacts = useSelector(getContacts);
-  const loading = useSelector(getIsLoading);
+  const contacts = useSelector(selectContacts);
+  const loading = useSelector(selectIsLoading);
 
   useEffect(() => {
     dispatch(fetchContacts());
@@ -40,11 +41,11 @@ export const App = () => {
         {contacts.length !== 0
           ? <>
             <Filter />
-            {loading === true && <span>Loading...</span>} 
+            {loading === true && <Loading />} 
             <ContactList />
             </>
           : loading === true
-            ? <span>Loading...</span>
+            ? <Loading />
             : <WarningMessage>Looks like you don`t have any contacts yet or just clear them all. Please add new contact🤔</WarningMessage>}
       </Box>
       <GlobalStyle />

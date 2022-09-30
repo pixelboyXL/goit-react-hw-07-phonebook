@@ -1,14 +1,10 @@
 import { ContactItemEntrails } from 'components/ContactList/ContactListItem';
 import { ContactListStyle, ContactItem } from "components/ContactList/ContactList.styled";
+import { selectFilteredContacts } from 'redux/selector';
 import { useSelector } from 'react-redux';
-import { getContacts, getFilter } from 'redux/selector';
 
 export const ContactList = () => {
-    const contacts = useSelector(getContacts);
-    const filter = useSelector(getFilter).toLowerCase();
-
-    const doFiltering = () => contacts.filter(contact => contact.name.toLowerCase().includes(filter));
-    const filteredContacts = doFiltering();
+    const filteredContacts = useSelector(selectFilteredContacts);
 
     return (
         <ContactListStyle>
