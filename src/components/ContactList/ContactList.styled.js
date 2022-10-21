@@ -15,10 +15,10 @@ export const ContactItem = styled.li`
 
 export const ButtonForDelete = styled.button`
     padding: ${p => p.theme.space[2]}px;
+    cursor: pointer;
     border: ${p => `${p.theme.borders.normal} ${p.theme.colors.almostDarkGreen}`};
     border-radius: ${p => p.theme.radii.sm};
     box-shadow: ${p => p.theme.shadows.shadow};
-    cursor: pointer;
     color: ${p => p.theme.colors.maybeYellow};
     background-color: ${p => p.theme.colors.almostDarkGreen};
     transition: ${p => p.theme.transition.cubicBezier};
